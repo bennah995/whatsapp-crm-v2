@@ -32,7 +32,11 @@ const STATES = {
 async function handleMessage(lead, text) {
   const convo = await getConversation(lead.id);
   const state = convo ? convo.state : STATES.GREETING;
-  const data = convo ? JSON.parse(convo.data || "{}") : {}
+  const data = convo
+    ? typeof convo.data === "string"
+      ? JSON.parse(convo.data || "{}")
+      : convo.data || {}
+    : {};
 
   let reply;
   let nextState = state;
@@ -97,7 +101,7 @@ router.post("/webhook", async (req, res) => {
   if (!parsed) return res.sendStatus(200);
 
   const lead = await findOrCreateLead(parsed.from);
-  await logMessage(lead.id, "inbound", parsed.text);
+  await logMessage(lead.id, "in", parsed.text);
 
   const reply = await handleMessage(lead, parsed.text);
   try {

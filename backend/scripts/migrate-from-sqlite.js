@@ -1,21 +1,15 @@
 require('dotenv').config();
 const sqlite3 = require('sqlite3');
-const { Pool } = require('pg');
 const path = require('path');
-
-// 1. Initialize Connections
-const sqliteDb = new sqlite3.Database(path.join(__dirname, '..', 'db', 'crm.db'));
-
-const pgPool = new Pool({
-  connectionString: process.env.DATABASE_URL || "postgresql://crm_app:crm_dev_password@localhost:5432/crm_app"
-});
+const pool = require('../db/pool');
 
 // Helper wrapper to fetch all rows sequentially from SQLite
+const sqliteDb = new sqlite3.Database(path.join(__dirname, '..', 'db', 'crm.db'));
 const sqliteAll = (query) => new Promise((res, rej) => sqliteDb.all(query, [], (err, rows) => err ? rej(err) : res(rows)));
 
 async function runMigration() {
   console.log("🚀 Starting data migration from SQLite to PostgreSQL...");
-  const pgClient = await pgPool.connect();
+  const pgClient = await pool.connect();
 
   try {
     // Wrap entire migration in a transaction for safety
@@ -95,7 +89,7 @@ async function runMigration() {
   } finally {
     pgClient.release();
     sqliteDb.close();
-    await pgPool.end();
+    await pool.end();
   }
 }
 

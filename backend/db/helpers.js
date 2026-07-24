@@ -1,21 +1,22 @@
-const db = require("./init");
+const pool = require("./pool");
 
-function dbGet(query, params) {
-  return new Promise((resolve, reject) => {
-    db.get(query, params, (err, row) => {
-      if (err) reject(err);
-      else resolve(row);
-    });
-  });
+function toPgQuery(query) {
+  let i = 0;
+  return query.replace(/\?/g, () => `$${++i}`);
 }
 
-function dbRun(query, params) {
-  return new Promise((resolve, reject) => {
-    db.run(query, params, function (err) {
-      if (err) reject(err);
-      else resolve(this);
-    });
-  });
+async function dbGet(query, params = []) {
+  const { rows } = await pool.query(toPgQuery(query), params);
+  return rows[0] ?? null;
 }
 
-module.exports = { dbGet, dbRun}
+async function dbAll(query, params = []) {
+  const { rows } = await pool.query(toPgQuery(query), params);
+  return rows;
+}
+
+async function dbRun(query, params = []) {
+  return pool.query(toPgQuery(query), params);
+}
+
+module.exports = { dbGet, dbAll, dbRun };

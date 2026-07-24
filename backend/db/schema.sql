@@ -1,4 +1,4 @@
-CREATE TABLE leads (
+CREATE TABLE IF NOT EXISTS leads (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   wa_phone TEXT NOT NULL UNIQUE,
   name TEXT,
@@ -11,7 +11,7 @@ CREATE TABLE leads (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE conversations (
+CREATE TABLE IF NOT EXISTS conversations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   lead_id UUID NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
   state TEXT NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE conversations (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE messages (
+CREATE TABLE IF NOT EXISTS messages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   lead_id UUID NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
   direction TEXT NOT NULL CHECK (direction IN ('in', 'out')),
@@ -27,5 +27,5 @@ CREATE TABLE messages (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_leads_status ON leads(status);
-CREATE INDEX idx_messages_lead_id ON messages(lead_id);
+CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);
+CREATE INDEX IF NOT EXISTS idx_messages_lead_id ON messages(lead_id);

@@ -31,7 +31,7 @@ async function updateLead(id, fields) {
   const params = keys.map((key) => fields[key]);
 
   await dbRun(
-    `UPDATE leads SET ${setClause}, updated_at = datetime('now') WHERE id = ?`,
+    `UPDATE leads SET ${setClause}, updated_at = NOW() WHERE id = ?`,
     [...params, id]
   );
 }

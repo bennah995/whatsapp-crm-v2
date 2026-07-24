@@ -22,18 +22,18 @@ async function saveConversation(leadId, state, data) {
   // you need to know: does a conversation row already exist for this lead?
   // if yes -> UPDATE state, data, updated_at
   // if no  -> INSERT a new row with a fresh id
-  if(conversation){
+  if (conversation) {
     await dbRun(
-      "UPDATE conversations SET state = ?, data = ?, updated_at = datetime('now') WHERE lead_id = ?",
-      [state, JSON.stringify(data), leadId]
-    )
-  } else{  
+      "UPDATE conversations SET state = ?, data = ?, updated_at = NOW() WHERE lead_id = ?",
+      [state, data, leadId]
+    );
+  } else {
     const id = crypto.randomUUID();
-    
+
     await dbRun(
       "INSERT INTO conversations (id, lead_id, state, data) VALUES (?, ?, ?, ?)",
-      [id, leadId, state, JSON.stringify(data)]
-    )
+      [id, leadId, state, data]
+    );
   }
 }
 
