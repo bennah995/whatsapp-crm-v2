@@ -7,6 +7,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const crypto = require("crypto");
 
+app.use(express.json());
+
 app.use(cors({
   origin: "http://localhost:5173",
 }));
@@ -34,8 +36,13 @@ app.use("/whatsapp", whatsappRoutes);
 
 // lead management 
 const leadsRoutes = require("./routes/leads");
+
+// auth
+const requireAuth = require("./middleware/requireAuth");
+const requireRole = require("./middleware/requireRole");
+
 app.use("/api", express.json());
-app.use("/api", leadsRoutes);
+app.use("/api", requireAuth, leadsRoutes);
 
 // error handling
 app.use((err, req, res, next) => {
@@ -46,28 +53,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Internal server error" });
 });
 
-// function parseIncoming(body) {
-//   const entry = body.entry?.[0];
-//   const change = entry?.changes?.[0];
-//   const value = change?.value;
-//   const message = value?.messages?.[0];
-//   if (!message) return null;
-
-//   return {
-//     from: message.from, // phone number
-//     text: message.text?.body, // text content
-//     timestamp: message.timestamp,
-//     messageId: message.id,
-//   };
-// }
-
-// const whatsappRoutes = require("./routes/whatsapp");
-// app.use("/whatsapp", express.json({ verify: verifySignature }));
-// app.use("/whatsapp", whatsappRoutes);
-
-// const leadsRoutes = require("./routes/leads");
-// app.use("/api", express.json());
-// app.use("/api", leadsRoutes);
+const authRouter = require("./routes/auth");
+app.use("/auth", authRouter);
 
 app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
