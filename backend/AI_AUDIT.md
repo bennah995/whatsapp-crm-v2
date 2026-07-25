@@ -38,3 +38,6 @@ app.use("/api/leads", requireAuth, leadsRoutes);
 in order to match the respective path(s)
 ```
 This was to avoid duplication such as `/api/leads/leads` and ensure everything matches up correctly
+
+## Day 4
+Used AI to generate a bunch of data in my database:

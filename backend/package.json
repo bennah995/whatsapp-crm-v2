@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "dev": "nodemon index",
     "db:test": "node db/testConnection.js",
     "db:migrate-from-sqlite": "node scripts/migrate-from-sqlite.js"
@@ -23,7 +23,9 @@
     "pg": "^8.22.0"
   },
   "devDependencies": {
+    "jest": "^30.4.2",
     "nodemon": "^3.1.14",
-    "sqlite3": "^6.0.1"
+    "sqlite3": "^6.0.1",
+    "supertest": "^7.2.2"
   }
 }

@@ -1,6 +1,6 @@
 const pool = require("../db/pool");
 
-async function list({ limit, offset, q, status }) {
+async function list({ limit, offset, q, status, assignedTo }) {
   const params = [];
   const conditions = [];
 
@@ -11,6 +11,10 @@ async function list({ limit, offset, q, status }) {
   if (status) {
     params.push(status);
     conditions.push(`status = $${params.length}`);
+  }
+  if(assignedTo){
+    params.push(assignedTo);
+    conditions.push(`status = $${params.length} OR assigned_to IS NULL`);
   }
 
   const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
@@ -27,7 +31,7 @@ async function list({ limit, offset, q, status }) {
   return rows;
 }
 
-async function count({ q, status }) {
+async function count({ q, status, assignedTo }) {
   const params = [];
   const conditions = [];
 
@@ -39,6 +43,10 @@ async function count({ q, status }) {
     params.push(status);
     conditions.push(`status = $${params.length}`);
   }
+  if (assignedTo) {
+    params.push(assignedTo);
+    conditions.push(`assigned_to = $${params.length} OR assigned_to IS NULL`);
+  }
 
   const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
   const sql = `SELECT COUNT(*)::int AS total FROM leads ${where}`;
@@ -47,8 +55,26 @@ async function count({ q, status }) {
   return rows[0]?.total || 0;
 }
 
+// atomic claiming: only succeeds if nobody has claimed it yet — prevents
+// two agents claiming the same lead in a race.
+async function claim(id, userId) {
+  const sql = `
+    UPDATE leads
+    SET assigned_to = $1, updated_at = NOW()
+    WHERE id = $2 AND assigned_to IS NULL
+    RETURNING *
+  `;
+  const { rows } = await pool.query(sql, [userId, id]);
+  return rows[0] || null;
+}
+
 async function findById(id) {
-  const sql = `SELECT * FROM leads WHERE id = $1`;
+  const sql = `
+    SELECT leads.*, u.email AS assigned_to_email
+    FROM leads
+    LEFT JOIN users u ON u.id = leads.assigned_to
+    WHERE leads.id = $1
+  `;
   const { rows } = await pool.query(sql, [id]);
   return rows[0] || null;
 }
@@ -85,5 +111,6 @@ module.exports = {
   findById,
   findMessagesByLeadId,
   update,
+  claim,
   getRawStatusCounts
 };
